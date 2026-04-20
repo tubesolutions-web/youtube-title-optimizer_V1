@@ -19,7 +19,7 @@
     },
     {
       "matches": ["https://studio.youtube.com/*"],
-      "js": ["studio-ep-numbers.js", "auto-description.js"],
+      "js": ["studio-ep-numbers.js", "studio-video-labels.js", "auto-description.js"],
       "run_at": "document_idle"
     },
     {

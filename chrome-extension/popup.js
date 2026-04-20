@@ -1,7 +1,7 @@
 const STORAGE_KEY   = 'tsAutoDescTemplates';
 const FEATURES_KEY  = 'tsFeatures';
 
-const FEATURE_IDS = ['agedChecker', 'tracker', 'epNumbers', 'autoDesc'];
+const FEATURE_IDS = ['agedChecker', 'tracker', 'epNumbers', 'videoLabels', 'autoDesc'];
 
 let templates = {};
 let features  = {};
