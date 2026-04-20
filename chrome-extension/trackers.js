@@ -493,8 +493,8 @@ function injectOverlay(renderer) {
   if (renderer.querySelector(`.${TS_CLASS}`)) return;
   const thumbContainer = renderer.querySelector('ytd-thumbnail, #thumbnail');
   if (!thumbContainer) return;
-  const video = extractFromRenderer(renderer);
-  if (!video?.id) return;
+  const videoIdCheck = extractFromRenderer(renderer);
+  if (!videoIdCheck?.id) return;
 
   const overlay = document.createElement('div');
   overlay.className = TS_CLASS;
@@ -506,6 +506,9 @@ function injectOverlay(renderer) {
 
   mainBtn.addEventListener('click', (e) => {
     e.preventDefault(); e.stopPropagation();
+    // Re-extract at click time so title is always current
+    const video = extractFromRenderer(renderer);
+    if (!video?.id) return;
     openOverlayDropdown(mainBtn, video);
   });
 
