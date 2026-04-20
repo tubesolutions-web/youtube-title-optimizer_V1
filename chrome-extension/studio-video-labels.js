@@ -251,8 +251,13 @@ async function inject() {
 async function boot() {
   for (let i = 0; i < 20; i++) {
     await inject();
-    await sleep(1500);
+    await sleep(500);
   }
+
+  new MutationObserver(() => inject()).observe(document.body, {
+    childList: true, subtree: true,
+  });
+
   setInterval(inject, 3000);
 }
 
