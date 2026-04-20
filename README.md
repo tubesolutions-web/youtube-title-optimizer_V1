@@ -42,7 +42,7 @@ Runs on `youtube.com`. Injects **Bookmark** and **Track** buttons on video thumb
 Runs on `studio.youtube.com`. Automatically reads the episode number from your video filename (e.g. `EP.19 - video-name.mp4`) and displays an editable **EP badge** next to each video in your content list. Keeps your episode numbering organized without manual entry.
 
 #### Video Labels
-Runs on `studio.youtube.com`. Adds a clickable **Label** badge next to each video in your content list. Click it to type any free-form label (e.g. VidRush, Manual, AI, Sponsored). Labels are stored per video ID and synced across devices — lets you see your entire content library's format at a glance without opening each video.
+Runs on `studio.youtube.com`. Adds a clickable **Label** badge next to each video in your content list. Click it to open a dropdown showing all previously used labels as one-click presets, a clear option, and an input to type a new label (e.g. VidRush, Manual, AI, Sponsored). Labels are stored per video ID and synced across devices — lets you see your entire content library's format at a glance without opening each video.
 
 #### Auto Description
 Runs on `studio.youtube.com`. Automatically fills in the description field when you open a video for editing. You set up a template per channel in the extension popup — it detects which channel you're on and fills the right template instantly. Templates are synced across all your devices via Chrome Sync.
