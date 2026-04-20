@@ -150,11 +150,14 @@ async function inject() {
       existing.remove();
     }
 
-    // Insert after EP badge if present, else prepend
-    const epBadge = titleEl.querySelector('.ep-inline-wrapper');
     const badge = createLabelBadge(labels[videoId] || '', videoId);
-    if (epBadge) epBadge.after(badge);
-    else titleEl.prepend(badge);
+    const epBadge = titleEl.querySelector('.ep-inline-wrapper');
+    if (epBadge) {
+      epBadge.after(badge);
+    } else {
+      // No EP badge yet — append so EP can still prepend before us later
+      titleEl.insertBefore(badge, titleEl.firstChild);
+    }
   });
 }
 
@@ -163,7 +166,6 @@ async function boot() {
     await inject();
     await sleep(1500);
   }
-  new MutationObserver(() => inject()).observe(document.body, { childList: true, subtree: true });
   setInterval(inject, 3000);
 }
 
