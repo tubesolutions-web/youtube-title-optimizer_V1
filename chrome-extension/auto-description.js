@@ -5,7 +5,8 @@ const AD_KEY = 'tsAutoDescTemplates';
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function isEditPage() {
-  return /\/video\/[^/]+\/edit/.test(location.pathname);
+  return /\/video\/[^/]+\/edit/.test(location.pathname) ||
+         /\/videos\/upload/.test(location.pathname);
 }
 
 function getDescriptionField() {
