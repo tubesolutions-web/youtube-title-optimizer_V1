@@ -150,8 +150,6 @@ newChannelInput.addEventListener('keydown', e => {
   if (e.key === 'Escape') newChannelRow.style.display = 'none';
 });
 
-document.getElementById('confirm-add-channel').addEventListener('click', confirmAddChannel);
-
 async function confirmAddChannel() {
   const name = newChannelInput.value.trim();
   if (!name) return;
