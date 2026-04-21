@@ -95,29 +95,28 @@ async function injectButton() {
   const ce = getDescriptionField();
   if (!ce) return;
 
-  const data = await chrome.storage.sync.get([AD_KEY, 'tsFeatures']);
-  if ((data['tsFeatures'] || {}).autoDesc === false) return;
-  const templates = data[AD_KEY] || {};
-  if (!Object.keys(templates).length) return;
-
-  // Find the description container to place the button
-  let container = ce.closest('ytcp-social-suggestions-textbox') ||
-                  ce.closest('[class*="description"]') ||
-                  ce.parentElement;
-
-  // Walk up to find a good anchor with a header/label
-  let anchor = null;
-  let node = container;
-  for (let i = 0; i < 8; i++) {
-    if (!node) break;
-    const header = node.querySelector('label, [id*="label"], ytcp-form-input-container');
-    if (header) { anchor = header; break; }
-    node = node.parentElement;
+  // Find the label element that contains "Beschrijving" / "Description"
+  // Walk up from the field and look for a label row
+  function findLabelRow() {
+    let node = ce.parentElement;
+    for (let i = 0; i < 10; i++) {
+      if (!node) break;
+      // Look for any element whose direct text is the description label
+      const all = node.querySelectorAll('label, span, div');
+      for (const el of all) {
+        const t = (el.childNodes[0]?.textContent || '').trim().toLowerCase();
+        if (t === 'beschrijving' || t === 'description') return el.parentElement || el;
+      }
+      node = node.parentElement;
+    }
+    return null;
   }
+
+  const labelRow = findLabelRow();
 
   const btn = document.createElement('button');
   btn.id = BTN_ID;
-  btn.textContent = '⚡ Fill description';
+  btn.textContent = '⚡ Fill';
   Object.assign(btn.style, {
     background: 'none',
     border: '1px solid #3a3a3a',
@@ -125,11 +124,11 @@ async function injectButton() {
     color: '#aaa',
     fontSize: '11px',
     fontWeight: '600',
-    padding: '3px 10px',
+    padding: '2px 8px',
     cursor: 'pointer',
     fontFamily: 'Roboto, sans-serif',
-    marginLeft: '10px',
-    verticalAlign: 'middle',
+    marginLeft: '8px',
+    flexShrink: '0',
     transition: 'border-color 0.15s, color 0.15s',
   });
   btn.addEventListener('mouseenter', () => { btn.style.borderColor = '#6d4faa'; btn.style.color = '#c4b0ff'; });
@@ -137,25 +136,29 @@ async function injectButton() {
 
   btn.addEventListener('click', async () => {
     const field = getDescriptionField();
-    if (!field) { btn.textContent = '⚡ Field not found'; return; }
+    if (!field) { btn.textContent = '⚡ Not found'; return; }
     const d = await chrome.storage.sync.get(AD_KEY);
     const tmpl = d[AD_KEY] || {};
     let channelName = getChannelName();
     if (!channelName) { await sleep(800); channelName = getChannelName(); }
     const template = findTemplate(tmpl, channelName);
-    if (!template) { btn.textContent = '⚡ No template'; setTimeout(() => { btn.textContent = '⚡ Fill description'; }, 2000); return; }
+    if (!template) {
+      btn.textContent = channelName ? `No template for "${channelName}"` : 'No template';
+      setTimeout(() => { btn.textContent = '⚡ Fill'; }, 3000);
+      return;
+    }
     setDescription(field, template);
-    btn.textContent = '✓ Filled!';
-    setTimeout(() => { btn.textContent = '⚡ Fill description'; }, 2000);
+    btn.textContent = '✓ Done';
+    setTimeout(() => { btn.textContent = '⚡ Fill'; }, 2000);
   });
 
-  if (anchor) {
-    anchor.style.display = anchor.style.display || 'flex';
-    anchor.style.alignItems = 'center';
-    anchor.appendChild(btn);
+  if (labelRow) {
+    Object.assign(labelRow.style, { display: 'flex', alignItems: 'center', flexWrap: 'wrap' });
+    labelRow.appendChild(btn);
   } else {
-    // Last resort: insert above the description field
-    ce.parentElement?.insertBefore(btn, ce);
+    // Fallback: insert right above the description field
+    const parent = ce.closest('ytcp-social-suggestions-textbox')?.parentElement || ce.parentElement;
+    parent?.insertBefore(btn, parent.firstChild);
   }
 }
 
