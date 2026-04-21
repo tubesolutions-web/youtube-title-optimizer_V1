@@ -114,7 +114,6 @@ function createLabelBadge(initialValue, videoId, initialColorKey) {
   function updateBadge(value, colorKey) {
     badge.textContent = value || 'Label';
     applyBadgeStyle(badge, value, colorKey);
-    deleteBtn.style.display = value ? 'inline-flex' : 'none';
   }
 
   function showDeleteConfirm(labelName) {
@@ -223,7 +222,12 @@ function createLabelBadge(initialValue, videoId, initialColorKey) {
       });
       clearItem.addEventListener('mouseenter', () => clearItem.style.background = '#3a1010');
       clearItem.addEventListener('mouseleave', () => clearItem.style.background = '');
-      clearItem.addEventListener('mousedown', (e) => { stopEvent(e); applyLabel('', null); });
+      clearItem.addEventListener('mousedown', (e) => {
+        stopEvent(e);
+        closeAllDropdowns();
+        wrapper.dataset.editing = 'false';
+        showDeleteConfirm(currentLabel);
+      });
       dropdown.appendChild(clearItem);
     }
 
@@ -317,30 +321,7 @@ function createLabelBadge(initialValue, videoId, initialColorKey) {
     }
   });
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.type = 'button';
-  deleteBtn.textContent = '×';
-  Object.assign(deleteBtn.style, {
-    display: initialValue ? 'inline-flex' : 'none',
-    alignItems: 'center', justifyContent: 'center',
-    width: '14px', height: '14px', marginLeft: '3px',
-    background: 'rgba(248,113,113,0.15)', border: '1px solid #f87171',
-    borderRadius: '50%', color: '#f87171', fontSize: '11px', lineHeight: '1',
-    cursor: 'pointer', padding: '0', flexShrink: '0',
-    fontFamily: 'Roboto, sans-serif', fontWeight: '700',
-  });
-  deleteBtn.addEventListener('mouseenter', () => { deleteBtn.style.background = 'rgba(248,113,113,0.35)'; });
-  deleteBtn.addEventListener('mouseleave', () => { deleteBtn.style.background = 'rgba(248,113,113,0.15)'; });
-  ['click', 'mousedown', 'mouseup', 'pointerdown'].forEach(ev => deleteBtn.addEventListener(ev, stopEvent));
-  deleteBtn.addEventListener('click', (e) => {
-    stopEvent(e);
-    closeAllDropdowns();
-    const labelName = badge.textContent === 'Label' ? '' : badge.textContent;
-    if (labelName) showDeleteConfirm(labelName);
-  });
-
   wrapper.appendChild(badge);
-  wrapper.appendChild(deleteBtn);
   return wrapper;
 }
 
