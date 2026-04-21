@@ -200,13 +200,29 @@ function createLabelBadge(initialValue, videoId, initialColorKey) {
         width: '8px', height: '8px', borderRadius: '50%',
         background: c.border, flexShrink: '0',
       });
-      const label = document.createElement('span');
-      label.textContent = name;
-      label.style.color = c.text;
+      const labelSpan = document.createElement('span');
+      labelSpan.textContent = name;
+      Object.assign(labelSpan.style, { color: c.text, flex: '1' });
+
+      const delBtn = document.createElement('span');
+      delBtn.textContent = '×';
+      Object.assign(delBtn.style, {
+        marginLeft: 'auto', color: '#f87171', fontSize: '13px', fontWeight: '700',
+        lineHeight: '1', padding: '0 2px', borderRadius: '3px', cursor: 'pointer',
+        opacity: '0', transition: 'opacity 0.1s',
+      });
+      delBtn.addEventListener('mousedown', (e) => {
+        stopEvent(e);
+        closeAllDropdowns();
+        wrapper.dataset.editing = 'false';
+        showDeleteConfirm(name);
+      });
+
       item.appendChild(dot);
-      item.appendChild(label);
-      item.addEventListener('mouseenter', () => item.style.background = '#2d1f4a');
-      item.addEventListener('mouseleave', () => item.style.background = '');
+      item.appendChild(labelSpan);
+      item.appendChild(delBtn);
+      item.addEventListener('mouseenter', () => { item.style.background = '#2d1f4a'; delBtn.style.opacity = '1'; });
+      item.addEventListener('mouseleave', () => { item.style.background = ''; delBtn.style.opacity = '0'; });
       item.addEventListener('mousedown', (e) => { stopEvent(e); applyLabel(name, colorKey); });
       dropdown.appendChild(item);
     });
