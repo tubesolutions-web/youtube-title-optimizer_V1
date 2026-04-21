@@ -135,7 +135,7 @@ function createLabelBadge(initialValue, videoId, initialColorKey) {
     applyBadgeStyle(badge, value, colorKey);
   }
 
-  function showDeleteConfirm(labelName) {
+  function showDeleteConfirm(labelName, onAfter) {
     document.getElementById('ts-delete-confirm')?.remove();
     const overlay = document.createElement('div');
     overlay.id = 'ts-delete-confirm';
@@ -163,7 +163,6 @@ function createLabelBadge(initialValue, videoId, initialColorKey) {
       color: '#aaa', fontSize: '12px', padding: '6px 14px', cursor: 'pointer',
       fontFamily: 'Roboto, sans-serif',
     });
-    cancelBtn.addEventListener('click', () => overlay.remove());
     const confirmBtn = document.createElement('button');
     confirmBtn.textContent = 'Remove';
     Object.assign(confirmBtn.style, {
@@ -174,13 +173,13 @@ function createLabelBadge(initialValue, videoId, initialColorKey) {
     confirmBtn.addEventListener('click', async () => {
       overlay.remove();
       await deletePreset(labelName);
-      // Remove from all videos that use this label
       const labels = await getLabels();
       const toUpdate = Object.entries(labels).filter(([, v]) => v === labelName);
       for (const [vid] of toUpdate) await saveLabel(vid, '');
-      // If current video had this label, clear the badge
-      if ((badge.textContent === labelName)) applyLabel('', null);
+      if (badge.textContent === labelName) applyLabel('', null);
+      if (onAfter) onAfter();
     });
+    cancelBtn.addEventListener('click', () => { overlay.remove(); if (onAfter) onAfter(); });
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     row.appendChild(cancelBtn);
     row.appendChild(confirmBtn);
@@ -241,9 +240,7 @@ function createLabelBadge(initialValue, videoId, initialColorKey) {
       });
       delBtn.addEventListener('mousedown', (e) => {
         stopEvent(e);
-        closeAllDropdowns();
-        wrapper.dataset.editing = 'false';
-        showDeleteConfirm(name);
+        showDeleteConfirm(name, showDropdown);
       });
 
       item.appendChild(dot);
