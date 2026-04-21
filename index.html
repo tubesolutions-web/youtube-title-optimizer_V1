@@ -6489,31 +6489,50 @@ function trackerQuickAddToGroup(groupId) {
 
 // Transcript fetching via CORS proxy (no extension required)
 async function sgFetchTranscript(videoId) {
-  const proxy = 'https://corsproxy.io/?url=';
+  const proxies = [
+    url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  ];
 
-  const pageResp = await fetch(proxy + encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`), {
-    headers: { 'Accept-Language': 'en-US,en;q=0.9' },
-  });
-  if (!pageResp.ok) throw new Error('HTTP ' + pageResp.status);
-  const html = await pageResp.text();
+  let html = null;
+  let lastErr = '';
+  for (const makeUrl of proxies) {
+    try {
+      const resp = await fetch(makeUrl(`https://www.youtube.com/watch?v=${videoId}`));
+      if (!resp.ok) { lastErr = 'HTTP ' + resp.status; continue; }
+      const text = await resp.text();
+      if (text.includes('captionTracks')) { html = text; break; }
+      lastErr = 'captionTracks not found in page';
+    } catch (e) { lastErr = e.message; }
+  }
+  if (!html) throw new Error('Could not load video page: ' + lastErr);
 
   const m = html.match(/"captionTracks":(\[[\s\S]*?\]),"audioTracks"/) ||
             html.match(/"captionTracks":(\[[\s\S]*?\]),"translationLanguages"/);
-  if (!m) throw new Error('No transcript available for this video');
+  if (!m) throw new Error('No captions found (video may not have subtitles)');
 
   const tracks = JSON.parse(m[1].replace(/\\u0026/g, '&').replace(/\\\//g, '/'));
-  if (!tracks?.length) throw new Error('No transcript available');
+  if (!tracks?.length) throw new Error('No caption tracks');
 
   const track = tracks.find(t => t.languageCode === 'en') ||
                 tracks.find(t => t.languageCode?.startsWith('en')) ||
                 tracks[0];
-  if (!track?.baseUrl) throw new Error('No transcript available');
+  if (!track?.baseUrl) throw new Error('No usable caption track');
 
   const cleanUrl = track.baseUrl.replace(/[&?]fmt=[^&]*/g, '');
   const sep = cleanUrl.includes('?') ? '&' : '?';
-  const captResp = await fetch(proxy + encodeURIComponent(cleanUrl + sep + 'fmt=json3'));
-  if (!captResp.ok) throw new Error('Could not fetch captions');
-  const raw = await captResp.text();
+  const captUrl = cleanUrl + sep + 'fmt=json3';
+
+  let raw = null;
+  for (const makeUrl of proxies) {
+    try {
+      const resp = await fetch(makeUrl(captUrl));
+      if (!resp.ok) continue;
+      raw = await resp.text();
+      break;
+    } catch {}
+  }
+  if (!raw) throw new Error('Could not fetch caption file');
 
   let text = '';
   try {
@@ -6526,7 +6545,7 @@ async function sgFetchTranscript(videoId) {
     text = raw.replace(/<[^>]+>/g, ' ').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/\s+/g, ' ').trim();
   }
 
-  if (!text) throw new Error('No transcript text found');
+  if (!text) throw new Error('Transcript is empty');
   return text;
 }
 
