@@ -255,26 +255,6 @@ function createLabelBadge(initialValue, videoId, initialColorKey) {
       dropdown.appendChild(item);
     });
 
-    // Clear option
-    const currentLabel = badge.textContent === 'Label' ? '' : badge.textContent;
-    if (currentLabel) {
-      const clearItem = document.createElement('div');
-      clearItem.textContent = '✕ Clear';
-      Object.assign(clearItem.style, {
-        padding: '7px 12px', cursor: 'pointer', fontSize: '12px',
-        color: '#f87171', borderBottom: '1px solid #2a1f4a', transition: 'background 0.1s',
-      });
-      clearItem.addEventListener('mouseenter', () => clearItem.style.background = '#3a1010');
-      clearItem.addEventListener('mouseleave', () => clearItem.style.background = '');
-      clearItem.addEventListener('mousedown', (e) => {
-        stopEvent(e);
-        closeAllDropdowns();
-        wrapper.dataset.editing = 'false';
-        showDeleteConfirm(currentLabel);
-      });
-      dropdown.appendChild(clearItem);
-    }
-
     // Color swatches
     let selectedColorKey = 'purple';
     const swatchRow = document.createElement('div');
