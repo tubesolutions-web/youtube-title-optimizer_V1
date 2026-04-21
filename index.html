@@ -802,7 +802,7 @@ body {
 .provider-btn.active .provider-sub { color: var(--primary-text); opacity: 0.7; }
 
 /* ── Settings modal inputs ── */
-#settings-anthropic-key, #settings-gemini-key, #settings-imagen-key, #settings-youtube-key, #settings-nf-youtube-key {
+#settings-anthropic-key, #settings-gemini-key, #settings-imagen-key, #settings-youtube-key, #settings-nf-youtube-key, #settings-elevenlabs-key {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border);
@@ -814,7 +814,7 @@ body {
   outline: none;
   transition: border-color var(--t), box-shadow var(--t);
 }
-#settings-anthropic-key:focus, #settings-gemini-key:focus, #settings-imagen-key:focus, #settings-youtube-key:focus, #settings-nf-youtube-key:focus {
+#settings-anthropic-key:focus, #settings-gemini-key:focus, #settings-imagen-key:focus, #settings-youtube-key:focus, #settings-nf-youtube-key:focus, #settings-elevenlabs-key:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px hsl(217 91% 60% / 0.15);
 }
@@ -1587,6 +1587,7 @@ select.ig-input { cursor: pointer; }
       <button class="settings-tab active" data-stab="titles" onclick="switchSettingsTab('titles')">Title Generator</button>
       <button class="settings-tab" data-stab="thumbnail" onclick="switchSettingsTab('thumbnail')">Thumbnail Generator</button>
       <button class="settings-tab" data-stab="niche" onclick="switchSettingsTab('niche')">Niche Finder</button>
+      <button class="settings-tab" data-stab="script" onclick="switchSettingsTab('script')">Script Generator</button>
     </div>
 
     <!-- ── Tab: Title Generator ── -->
@@ -1680,6 +1681,19 @@ select.ig-input { cursor: pointer; }
       </div>
     </div>
 
+    <!-- ── Tab: Script Generator ── -->
+    <div class="settings-tab-panel" id="stab-script">
+      <p class="subtitle" style="margin-bottom:18px">Add your ElevenLabs API key to generate voiceovers from scripts directly in the app.</p>
+      <div class="field">
+        <label>ElevenLabs API Key</label>
+        <div style="position:relative">
+          <input type="password" id="settings-elevenlabs-key" placeholder="sk_..." style="padding-right:60px" />
+          <button onclick="toggleKeyVisibility('settings-elevenlabs-key',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#555;font-size:11px;cursor:pointer;padding:4px 6px">Show</button>
+        </div>
+        <div class="hint">Get yours at <strong>elevenlabs.io</strong> → Profile → API Keys</div>
+      </div>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
       <button class="btn btn-primary" onclick="saveSettings()">Save settings</button>
@@ -1714,30 +1728,32 @@ select.ig-input { cursor: pointer; }
   <!-- My Channels section (titles + ideas pages) -->
   <div id="gsb-channels" style="display:flex;flex-direction:column;flex:1;min-height:0">
     <div class="sidebar-header"><h2>My Channels</h2></div>
-    <div class="niche-list" id="niche-list"></div>
-    <button class="btn-add-niche" onclick="openModal()">+ Add channel</button>
+    <div class="niche-list" id="niche-list" style="flex:1;overflow-y:auto"></div>
   </div>
 
   <!-- Trackers section -->
   <div id="gsb-trackers" style="display:none;flex-direction:column;flex:1;min-height:0">
     <div class="sidebar-header"><h2>Trackers</h2></div>
     <div class="tracker-channel-list" id="tracker-group-list" style="flex:1;overflow-y:auto"></div>
-    <div style="padding:12px 16px;border-top:1px solid var(--sidebar-border);margin-top:8px">
-      <button class="btn-add-niche" onclick="trackerOpenNewGroup()">+ New tracker</button>
-    </div>
   </div>
 
   <!-- Bookmarks section -->
   <div id="gsb-bookmarks" style="display:none;flex-direction:column;flex:1;min-height:0">
     <div class="sidebar-header"><h2>Folders</h2></div>
     <div id="bm-folder-list" style="flex:1;overflow-y:auto"></div>
-    <div style="padding:8px 10px;border-top:1px solid var(--sidebar-border);margin-top:8px">
-      <button class="bm-add-folder-btn" onclick="bmNewFolder()">+ New folder</button>
-    </div>
+  </div>
+
+  <!-- Spacer: only used when no section is visible (e.g. Script Generator) -->
+  <div id="sidebar-spacer" style="display:none;flex:1;min-height:0"></div>
+
+  <!-- Add button area: pinned above auth -->
+  <div id="sidebar-add-area" style="padding:8px 12px;border-top:1px solid var(--sidebar-border)">
+    <button id="sidebar-btn-channel" class="btn-add-niche" onclick="openModal()" style="display:none">+ Add channel</button>
+    <button id="sidebar-btn-tracker" class="btn-add-niche" onclick="trackerOpenNewGroup()" style="display:none">+ New tracker</button>
+    <button id="sidebar-btn-folder" class="bm-add-folder-btn" onclick="bmNewFolder()" style="display:none">+ New folder</button>
   </div>
 
   <!-- Always-visible bottom: auth + settings -->
-  <div style="flex:1;min-height:0"></div>
   <div class="auth-area" id="auth-area">
     <button class="btn-google-signin" id="btn-signin" onclick="signInWithGoogle()">
       <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-3.59-13.46-8.83l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
@@ -2409,6 +2425,7 @@ function openSettings() {
   document.getElementById('settings-gemini-key').value = appSettings.geminiKey || '';
   document.getElementById('settings-imagen-key').value = appSettings.imagenKey || '';
   document.getElementById('settings-youtube-key').value = appSettings.youtubeKey || '';
+  document.getElementById('settings-elevenlabs-key').value = appSettings.elevenLabsKey || '';
   document.getElementById('settings-nf-youtube-key').value = appSettings.nfYoutubeKey || '';
   selectProvider(getActiveProvider(), false);
   selectTheme(appSettings.theme || 'dark');
@@ -2438,6 +2455,7 @@ function saveSettings() {
   appSettings.imagenKey = document.getElementById('settings-imagen-key').value.trim();
   appSettings.youtubeKey = document.getElementById('settings-youtube-key').value.trim();
   appSettings.nfYoutubeKey = document.getElementById('settings-nf-youtube-key').value.trim();
+  appSettings.elevenLabsKey = document.getElementById('settings-elevenlabs-key').value.trim();
   // theme is already set via selectTheme()
   persistSettings(appSettings);
   closeSettings();
@@ -3565,21 +3583,22 @@ function switchPage(page) {
     const gsbc = document.getElementById('gsb-channels');
     const gsbt = document.getElementById('gsb-trackers');
     const gsbk = document.getElementById('gsb-bookmarks');
-    const showChannels = ['titles', 'ideas'].includes(page);
-    const noListPages = ['thumbnail', 'thumb-preview', 'niche', 'script'];
-    if (gsbc) {
-      gsbc.style.display = (showChannels || noListPages.includes(page)) && page !== 'script' ? 'flex' : 'none';
-      // On non-channel pages hide the list/header, keep section for spacing
-      const header = gsbc.querySelector('.sidebar-header');
-      const list = gsbc.querySelector('.niche-list');
-      const addBtn = gsbc.querySelector('.btn-add-niche');
-      const hide = noListPages.includes(page);
-      if (header) header.style.display = hide ? 'none' : '';
-      if (list) list.style.display = hide ? 'none' : '';
-      if (addBtn) addBtn.style.display = hide ? 'none' : '';
-    }
+    const spacer = document.getElementById('sidebar-spacer');
+    const showChannels = ['titles', 'ideas', 'thumbnail', 'thumb-preview', 'niche'].includes(page);
+    const noSectionPages = ['script'];
+    if (gsbc) gsbc.style.display = showChannels ? 'flex' : 'none';
     if (gsbt) gsbt.style.display = page === 'tracker' ? 'flex' : 'none';
     if (gsbk) gsbk.style.display = page === 'bookmarks' ? 'flex' : 'none';
+    if (spacer) spacer.style.display = noSectionPages.includes(page) ? 'flex' : 'none';
+    // Show correct add button
+    const btnCh = document.getElementById('sidebar-btn-channel');
+    const btnTr = document.getElementById('sidebar-btn-tracker');
+    const btnFo = document.getElementById('sidebar-btn-folder');
+    const addArea = document.getElementById('sidebar-add-area');
+    if (btnCh) btnCh.style.display = ['titles', 'ideas'].includes(page) ? '' : 'none';
+    if (btnTr) btnTr.style.display = page === 'tracker' ? '' : 'none';
+    if (btnFo) btnFo.style.display = page === 'bookmarks' ? '' : 'none';
+    if (addArea) addArea.style.display = noSectionPages.includes(page) ? 'none' : '';
     renderSidebar();
   } catch(e) { console.warn('sidebar update error', e); }
 
@@ -5528,6 +5547,22 @@ if (niches.length) igSelectChannel(niches[0].id);
       <div id="sg-output" style="padding:24px 28px"></div>
     </div>
 
+    <!-- Voiceover -->
+    <div id="sg-voice-wrap" style="display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden">
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;font-weight:600;color:var(--fg-muted)">🎙 Generate Voiceover</span>
+      </div>
+      <div style="padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:10px;align-items:center">
+          <select id="sg-voice-select" style="flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--fg);font-size:13px;padding:8px 10px;outline:none;font-family:inherit">
+            <option value="">Loading voices…</option>
+          </select>
+          <button id="sg-voice-btn" onclick="sgGenerateVoice()" style="background:var(--primary);border:none;border-radius:var(--radius-sm);color:var(--primary-fg);font-size:13px;font-weight:600;padding:8px 18px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:background .15s" onmouseenter="this.style.background='var(--primary-hover)'" onmouseleave="this.style.background='var(--primary)'">Generate & Download</button>
+        </div>
+        <div id="sg-voice-status" style="font-size:12px;color:var(--fg-muted);min-height:18px"></div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -6584,6 +6619,74 @@ function sgRenderScript(text) {
   out.appendChild(pre);
   document.getElementById('sg-output-wrap').style.display = 'block';
   document.getElementById('sg-output-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  sgShowVoiceSection();
+}
+
+async function sgShowVoiceSection() {
+  const wrap = document.getElementById('sg-voice-wrap');
+  wrap.style.display = 'block';
+  const key = appSettings?.elevenLabsKey;
+  if (!key) {
+    document.getElementById('sg-voice-status').textContent = 'Add your ElevenLabs API key in ⚙ Settings → Script Generator.';
+    return;
+  }
+  document.getElementById('sg-voice-status').textContent = 'Loading voices…';
+  try {
+    const resp = await fetch('https://api.elevenlabs.io/v1/voices', {
+      headers: { 'xi-api-key': key }
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    const sel = document.getElementById('sg-voice-select');
+    sel.innerHTML = data.voices.map(v =>
+      `<option value="${v.voice_id}">${v.name}${v.labels?.accent ? ' · ' + v.labels.accent : ''}</option>`
+    ).join('');
+    document.getElementById('sg-voice-status').textContent = '';
+  } catch(e) {
+    document.getElementById('sg-voice-status').textContent = 'Could not load voices: ' + e.message;
+  }
+}
+
+async function sgGenerateVoice() {
+  const key = appSettings?.elevenLabsKey;
+  if (!key) { document.getElementById('sg-voice-status').textContent = 'Add your ElevenLabs API key in ⚙ Settings → Script Generator.'; return; }
+  const voiceId = document.getElementById('sg-voice-select').value;
+  if (!voiceId) { document.getElementById('sg-voice-status').textContent = 'Select a voice first.'; return; }
+  const script = document.querySelector('#sg-output pre')?.textContent;
+  if (!script) { document.getElementById('sg-voice-status').textContent = 'Generate a script first.'; return; }
+
+  const btn = document.getElementById('sg-voice-btn');
+  btn.disabled = true; btn.textContent = 'Generating…';
+  document.getElementById('sg-voice-status').textContent = 'Sending to ElevenLabs…';
+
+  try {
+    const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+      method: 'POST',
+      headers: { 'xi-api-key': key, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' },
+      body: JSON.stringify({
+        text: script,
+        model_id: 'eleven_monolingual_v1',
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+      })
+    });
+    if (!resp.ok) {
+      const err = await resp.text();
+      throw new Error(resp.status + ' — ' + err.slice(0, 120));
+    }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const title = document.getElementById('sg-title')?.value?.trim() || 'voiceover';
+    a.href = url;
+    a.download = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.mp3';
+    a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById('sg-voice-status').textContent = '✓ Downloaded!';
+  } catch(e) {
+    document.getElementById('sg-voice-status').textContent = 'Error: ' + e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Generate & Download';
+  }
 }
 
 function sgCopyScript() {
