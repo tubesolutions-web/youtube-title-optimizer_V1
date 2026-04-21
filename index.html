@@ -6609,7 +6609,7 @@ async function sgGenerate() {
   }
 
   if (!transcripts.length) {
-    sgSetStatus('Could not fetch any transcripts. Make sure the extension is installed and you\'re logged into YouTube.', true);
+    sgSetStatus('Could not fetch any transcripts. Make sure the videos have captions enabled.', true);
     btn.disabled = false; btn.textContent = 'Generate Script';
     return;
   }
