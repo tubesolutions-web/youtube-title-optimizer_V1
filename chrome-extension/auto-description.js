@@ -2,6 +2,7 @@
 (() => {
 const AD_KEY = 'tsAutoDescTemplates';
 const BTN_ID = 'ts-fill-desc-btn';
+let templateCache = {};
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -37,8 +38,10 @@ function setDescription(ce, text) {
   ce.focus();
   document.execCommand('selectAll', false, null);
   const ok = document.execCommand('insertText', false, text);
-  if (!ok) { ce.innerText = text; }
-  ce.dispatchEvent(new Event('input',  { bubbles: true, composed: true }));
+  if (!ok) {
+    ce.innerText = text;
+  }
+  ce.dispatchEvent(new InputEvent('input', { bubbles: true, composed: true, inputType: 'insertText', data: text }));
   ce.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
 }
 
@@ -99,21 +102,25 @@ async function injectButton() {
   btn.id = BTN_ID;
   btn.textContent = '⚡ Description template';
   Object.assign(btn.style, {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
     background: 'none',
-    border: '1px solid #3a3a3a',
-    borderRadius: '4px',
-    color: '#aaa',
-    fontSize: '22px',
-    fontWeight: '600',
-    padding: '4px 16px',
+    border: '1px solid #5a3f8a',
+    borderRadius: '20px',
+    color: '#a78bfa',
+    fontSize: '13px',
+    fontWeight: '500',
+    padding: '6px 14px',
     cursor: 'pointer',
     fontFamily: 'Roboto, sans-serif',
-    marginLeft: '8px',
-    flexShrink: '0',
-    transition: 'border-color 0.15s, color 0.15s',
+    marginTop: '8px',
+    transition: 'border-color 0.15s, color 0.15s, background 0.15s',
+    zIndex: '999',
+    pointerEvents: 'all',
   });
-  btn.addEventListener('mouseenter', () => { btn.style.borderColor = '#6d4faa'; btn.style.color = '#c4b0ff'; });
-  btn.addEventListener('mouseleave', () => { btn.style.borderColor = '#3a3a3a'; btn.style.color = '#aaa'; });
+  btn.addEventListener('mouseenter', () => { btn.style.borderColor = '#a78bfa'; btn.style.background = 'rgba(109,79,170,0.15)'; });
+  btn.addEventListener('mouseleave', () => { btn.style.borderColor = '#5a3f8a'; btn.style.background = 'none'; });
 
   function showAddTemplateModal(onSaved) {
     document.getElementById('ts-tmpl-modal-overlay')?.remove();
@@ -220,10 +227,11 @@ async function injectButton() {
       });
       item.addEventListener('mouseenter', () => item.style.background = '#2d1f4a');
       item.addEventListener('mouseleave', () => item.style.background = '');
-      item.addEventListener('mousedown', (e) => {
+      item.addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
         picker.remove();
-        setDescription(field, tmpl[name]);
+        const target = getDescriptionField() || field;
+        setDescription(target, tmpl[name]);
         btn.textContent = '✓ Done';
         setTimeout(() => { btn.textContent = '⚡ Description template'; }, 2000);
       });
@@ -238,7 +246,7 @@ async function injectButton() {
     });
     addItem.addEventListener('mouseenter', () => addItem.style.background = '#2d1f4a');
     addItem.addEventListener('mouseleave', () => addItem.style.background = '');
-    addItem.addEventListener('mousedown', (e) => {
+    addItem.addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
       picker.remove();
       showAddTemplateModal((updatedTmpl) => showTemplatePicker(updatedTmpl, field));
@@ -251,13 +259,11 @@ async function injectButton() {
     setTimeout(() => document.addEventListener('click', () => picker.remove(), { once: true }), 0);
   }
 
-  btn.addEventListener('click', async () => {
+  btn.addEventListener('click', () => {
     const field = getDescriptionField();
     if (!field) { btn.textContent = '⚡ Not found'; return; }
-    const d = await chrome.storage.sync.get(AD_KEY);
-    const tmpl = d[AD_KEY] || {};
-    let channelName = getChannelName();
-    if (!channelName) { await sleep(800); channelName = getChannelName(); }
+    const tmpl = templateCache;
+    const channelName = getChannelName();
     const template = findTemplate(tmpl, channelName);
     if (!template) {
       const keys = Object.keys(tmpl);
@@ -270,18 +276,15 @@ async function injectButton() {
     setTimeout(() => { btn.textContent = '⚡ Description template'; }, 2000);
   });
 
-  // Place button as overlay inside the description field container
+  // Place button below the description field container (outside, to avoid stacking context issues)
   const fieldContainer = ce.closest('ytcp-social-suggestions-textbox') ||
                          ce.closest('[class*="description"]') ||
                          ce.parentElement;
   const posParent = fieldContainer?.closest('ytcp-form-input-container') || fieldContainer;
   if (posParent) {
-    const cur = window.getComputedStyle(posParent).position;
-    if (cur === 'static') posParent.style.position = 'relative';
-    Object.assign(btn.style, { position: 'absolute', bottom: '8px', left: '10px', marginLeft: '0' });
-    posParent.appendChild(btn);
+    posParent.insertAdjacentElement('afterend', btn);
   } else {
-    ce.parentElement?.appendChild(btn);
+    ce.parentElement?.insertAdjacentElement('afterend', btn);
   }
 }
 
@@ -318,14 +321,21 @@ async function autoFill() {
 }
 
 async function init() {
-  await autoFill();
-  // Try injecting button multiple times until the DOM is ready
+  try {
+    const d = await chrome.storage.sync.get(AD_KEY);
+    templateCache = d[AD_KEY] || {};
+  } catch (e) {}
+  try { await autoFill(); } catch (e) {}
   for (let i = 0; i < 10; i++) {
-    await injectButton();
+    try { await injectButton(); } catch (e) {}
     if (document.getElementById(BTN_ID)) break;
     await sleep(800);
   }
 }
+
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes[AD_KEY]) templateCache = changes[AD_KEY].newValue || {};
+});
 
 // Popup manual override
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
